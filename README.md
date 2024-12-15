@@ -1,7 +1,7 @@
 
 # 🌦️ Forecast Workaround Chrome Extension
 
-A handy Chrome extension to forecast scheduling changes to your workflows on Control-M SaaS! 🚀
+A handy Chrome extension to forecast scheduling changes to your workflows on [Control-M SaaS](https://www.bmc.com/it-solutions/bmc-helix-control-m.html)! 🚀
 
 ---
 

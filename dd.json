@@ -1,0 +1,33 @@
+{
+    "DeployDescriptor": [
+        {
+            "Property": "Host",
+            "Assign": "ip-172-31-2-151.us-west-2.compute.internal"
+        },
+        {
+            "Property": "ControlmServer",
+            "Assign": "v22"
+        },
+        {
+            "Property": "RunAs",
+            "Assign": "ctmuser"
+        },
+        {
+            "ApplyOn": {
+                "Type": "Job"
+            },
+            "Add": {
+                "Path": "@",
+                "propertyName": "RunAsDummy",
+                "propertyValue": true
+            }
+        },
+        {
+            "Comment": "Remove RunAsDummy from SLAManagement jobs",
+            "ApplyOn": {
+                "Type": "Job:SLAManagement"
+            },
+            "Delete": "@.RunAsDummy"
+        }
+    ]
+}

@@ -1,0 +1,266 @@
+{
+    "mqn-forecast-flow" : {
+      "Type" : "Folder",
+      "Variables" : [ {
+        "appid" : "481be8b9210a09cc3a3bcdcf190a3aa8"
+      }, {
+        "zipcode" : "75070"
+      }, {
+        "email" : "minh_nguyen2@bmc.com"
+      } ],
+      "ControlmServer" : "IN01",
+      "OrderMethod" : "Manual",
+      "RunAs" : "ctmagent",
+      "SubApplication" : "mqn-forecast-flow",
+      "CreatedBy" : "minh_nguyen2@bmc.com",
+      "Application" : "mqn-forecast-flow",
+      "When" : {
+        "RuleBasedCalendars" : {
+          "Included" : [ "EVERYDAY" ],
+          "EVERYDAY" : {
+            "Type" : "Calendar:RuleBased",
+            "When" : {
+              "DaysRelation" : "OR",
+              "WeekDays" : [ "NONE" ],
+              "MonthDays" : [ "ALL" ]
+            }
+          }
+        }
+      },
+      "mqn-cityvar" : {
+        "Type" : "Job:Command",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "Command" : "cd $HOME/ && city=$(cat output.json | jq -r \".name\") | echo \"$city\"",
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "CaptureOutput_0" : {
+          "Type" : "Action:CaptureOutput",
+          "Capture" : "UpToEndOfLine",
+          "Search" : "city=",
+          "VariableName" : "\\\\city",
+          "ForwardBy" : {
+            "ColumnsOption" : "Characters"
+          }
+        },
+        "eventsToWaitFor" : {
+          "Type" : "WaitForEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-cityvar"
+          } ]
+        },
+        "eventsToAdd" : {
+          "Type" : "AddEvents",
+          "Events" : [ {
+            "Event" : "mqn-cityvar-TO-mqn-getoutput"
+          } ]
+        },
+        "eventsToDelete" : {
+          "Type" : "DeleteEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-cityvar"
+          } ]
+        }
+      },
+      "mqn-countryvar" : {
+        "Type" : "Job:Command",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "Command" : "cd $HOME/ && country=$(cat output.json | jq -r \".sys.country\") | echo \"$country\"",
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "CaptureOutput_0" : {
+          "Type" : "Action:CaptureOutput",
+          "Capture" : "UpToEndOfLine",
+          "Search" : "country=",
+          "VariableName" : "\\\\country",
+          "ForwardBy" : {
+            "ColumnsOption" : "Characters"
+          }
+        },
+        "eventsToWaitFor" : {
+          "Type" : "WaitForEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-countryvar"
+          } ]
+        },
+        "eventsToAdd" : {
+          "Type" : "AddEvents",
+          "Events" : [ {
+            "Event" : "mqn-countryvar-TO-mqn-getoutput"
+          } ]
+        },
+        "eventsToDelete" : {
+          "Type" : "DeleteEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-countryvar"
+          } ]
+        }
+      },
+      "mqn-forecast-flow-sla" : {
+        "Type" : "Job:SLAManagement",
+        "ServiceName" : "mqn-forecast-flow-sla",
+        "ServicePriority" : "3",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "JobRunsDeviationsTolerance" : "3",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "CompleteIn" : {
+          "Time" : "0:5"
+        },
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "eventsToWaitFor" : {
+          "Type" : "WaitForEvents",
+          "Events" : [ {
+            "Event" : "mqn-getoutput-TO-mqn-forecast-flow-sla"
+          } ]
+        },
+        "eventsToDelete" : {
+          "Type" : "DeleteEvents",
+          "Events" : [ {
+            "Event" : "mqn-getoutput-TO-mqn-forecast-flow-sla"
+          } ]
+        }
+      },
+      "mqn-getoutput" : {
+        "Type" : "Job:Command",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "Command" : "echo \\\"Today, the high temperature in %%city %%country is %%hightemp F.\\\"",
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "IfBase:Folder:CompletionStatus_0" : {
+          "Type" : "If:CompletionStatus",
+          "CompletionStatus" : "OK",
+          "Mail_0" : {
+            "Type" : "Action:Mail",
+            "Subject" : "Today's High Temperature",
+            "To" : "%%email",
+            "Message" : "Today, the high temperature in %%city %%country is %%hightemp F."
+          }
+        },
+        "eventsToWaitFor" : {
+          "Type" : "WaitForEvents",
+          "Events" : [ {
+            "Event" : "mqn-countryvar-TO-mqn-getoutput"
+          }, {
+            "Event" : "mqn-cityvar-TO-mqn-getoutput"
+          }, {
+            "Event" : "mqn-hightempvar-TO-mqn-getoutput"
+          } ]
+        },
+        "eventsToAdd" : {
+          "Type" : "AddEvents",
+          "Events" : [ {
+            "Event" : "mqn-getoutput-TO-mqn-forecast-flow-sla"
+          } ]
+        },
+        "eventsToDelete" : {
+          "Type" : "DeleteEvents",
+          "Events" : [ {
+            "Event" : "mqn-cityvar-TO-mqn-getoutput"
+          }, {
+            "Event" : "mqn-countryvar-TO-mqn-getoutput"
+          }, {
+            "Event" : "mqn-hightempvar-TO-mqn-getoutput"
+          } ]
+        }
+      },
+      "mqn-getweatherdata" : {
+        "Type" : "Job:Command",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunOnAllAgentsInGroup" : true,
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "Command" : "wget \"https://api.openweathermap.org/data/2.5/weather?zip=%%zipcode,us&appid=%%appid&units=imperial\" -O $HOME/output.json",
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "eventsToAdd" : {
+          "Type" : "AddEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-countryvar"
+          }, {
+            "Event" : "mqn-getweatherdata-TO-mqn-cityvar"
+          }, {
+            "Event" : "mqn-getweatherdata-TO-mqn-hightempvar"
+          } ]
+        }
+      },
+      "mqn-hightempvar" : {
+        "Type" : "Job:Command",
+        "SubApplication" : "mqn-forecast-flow",
+        "Host" : "zzz-linux-agent-0",
+        "CreatedBy" : "minh_nguyen2@bmc.com",
+        "RunAs" : "ctmagent",
+        "Application" : "mqn-forecast-flow",
+        "Command" : "cd $HOME/ && high_temp=$(cat output.json | jq \".main.temp_max\") | echo \"$high_temp\"",
+        "When" : {
+          "WeekDays" : [ "NONE" ],
+          "Months" : [ "NONE" ],
+          "MonthDays" : [ "NONE" ],
+          "DaysRelation" : "OR"
+        },
+        "CaptureOutput_0" : {
+          "Type" : "Action:CaptureOutput",
+          "Capture" : "UpToEndOfLine",
+          "Search" : "high_temp=",
+          "VariableName" : "\\\\hightemp",
+          "ForwardBy" : {
+            "ColumnsOption" : "Characters"
+          }
+        },
+        "eventsToWaitFor" : {
+          "Type" : "WaitForEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-hightempvar"
+          } ]
+        },
+        "eventsToAdd" : {
+          "Type" : "AddEvents",
+          "Events" : [ {
+            "Event" : "mqn-hightempvar-TO-mqn-getoutput"
+          } ]
+        },
+        "eventsToDelete" : {
+          "Type" : "DeleteEvents",
+          "Events" : [ {
+            "Event" : "mqn-getweatherdata-TO-mqn-hightempvar"
+          } ]
+        }
+      }
+    }
+  }
